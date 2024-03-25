@@ -1,16 +1,18 @@
 //Genetic Algorithm
 const populationSize = 50
+const levels = 1
 const sections = ["11M1","11M2","11A1","11A2"]
 const days = ["monday","tuesday","wednesday","thursday","friday","saturday"]
 
 
 const initializePopulation = (sections) => {
     let initialPopulation = [];
+    let overAllSched;
     const subjects = curriculum[0].contents.find(content=>content.level=="1st_year").firstSem;
     const roomsToBeUsed = new Rooms(rooms);
     const professorsToBeAssigned = new Professors(professors);
     for(let i = 0; i < populationSize; i++){ // generate an initial population of 50
-
+        overAllSched = [];
         for (let j = 0; j < sections.length ; j++){ //generate a monday to saturday sched for each section
             let sectionLevelSched = [];
             //TO-DO
@@ -71,10 +73,12 @@ const initializePopulation = (sections) => {
                     sectionLevelSched.push({section:section,day:day,professor:chosenProfessor,subjName:subject.subjName,room:chosenRoom, startTime:startTime.value,endTime:endTime.value});
                     // Remarks
                     // Algo still appends classes with undefined professors - needs to be fixed
+                    // Algo needs to group each population (4 sections per population)
                 });
             }
-            initialPopulation.push(sectionLevelSched);
+            overAllSched.push(sectionLevelSched);
         }
+        initialPopulation.push(overAllSched);
     }
 
     return initialPopulation;

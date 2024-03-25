@@ -25,4 +25,8 @@ const time = [
     {slot:18.5,value:"18:30"},
     {slot:19,value:"19:00"},
     {slot:19.5,value:"19:30"},
+    {slot:20,value:"20:00"},
+    {slot:20.5,value:"20:30"},
+    {slot:21,value:"21:00"},
+    {slot:21.5,value:"21:30"},
 ]

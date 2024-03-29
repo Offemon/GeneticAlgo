@@ -1,106 +1,129 @@
 //Genetic Algorithm
-const populationSize = 100
-const levels = 1
-const sections = ["11M1","11M2","11A1","11A2"]
+const populationSize = 10
+const sections = [["11M1","11A1"],["21M1","21A1"],["31A1"],["41E1"]]
 let days = ["monday","tuesday","wednesday","thursday","friday","saturday"]
 
 
 const initializePopulation = (sections) => {
     let initialPopulation = [];
     let overAllSched;
-    const subjects = curriculum[0].contents.find(content=>content.level=="1st_year").firstSem;
+    // const subjects = curriculum[0].contents.find(content=>content.level=="1st_year").firstSem;
     const roomsToBeUsed = new Rooms(rooms);
     const professorsToBeAssigned = new Professors(professors);
+    const levels = ["1st_year","2nd_year","3rd_year","4th_year"];
     // console.log(addProfessorDailyLoad((new Professors(professors)).professors));
     for(let i = 0; i < populationSize; i++){ // generate an initial population of 50
         overAllSched = [];
-        for (let j = 0; j < sections.length ; j++){ //generate a monday to saturday sched for each section
-            let sectionLevelSched = [];
-            let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
-            days = fisherYatesShuffler(days);
-            for(let k = 0; k<days.length;k++){  //loop through the days of the week
-                let day = days[k];
-                let section = sections[j]
-                let schoolHourTolerance = 6;
-                let schoolHours=0;
-                let unassignedSubjects = prepdSubjects.filter(subject=>subject.assigned===false);
-
-                if(schoolHours<schoolHourTolerance){
-                    //TO-DO
-                    //Fix subjects with professors that are only available every saturday kept being contested and end up not being assigned
-                    fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.availability.includes(day))).forEach(subject => { // loop through each shuffled non-async subjects
-                        if(schoolHours<schoolHourTolerance){
-                            let chosenRoom;
-                            let timeSlot;
-                            let startTime;
-                            let endTime;
-                            switch(subject.classType){ // this needs to have its own function
-                                case "lec":
-                                    roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
-                                    chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                    break;
-                                case "lab":
-                                    roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
-                                    chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                    break;
-                                case "gym":
-                                    roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
-                                    chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                    break;
-                                case "out":
-                                    chosenRoom = "TBA";
-                                    break;
-                                default:
-                                    chosenRoom = "TBA"
-                                    break;
-                            }
-                            timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
-                            startTime = time.find(slot=>slot.slot==timeSlot);
-                            endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
-                            sectionLevelSched.push({section:section,day:day,professor:subject.professor,session:subject.session,subjName:subject.subjName,room:chosenRoom, startTime:startTime.value,endTime:endTime.value});
-                            subject.assigned = true;
-                            schoolHours = schoolHours+subject.duration;
-                        }
-                    });
+        //TO-DO
+        //create a foreach loop for every course
+            //create a foreach loop for every level
+        for(let l = 0; l<levels.length;l++){
+            const subjects = curriculum[0].contents.find(content=>content.level==levels[l]).firstSem;
+            for (let j = 0; j < sections[l].length ; j++){ //generate a monday to saturday sched for each section
+                let sectionLevelSched = [];
+                let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
+                days = fisherYatesShuffler(days);
+                for(let k = 0; k<days.length;k++){  //loop through the days of the week
+                    let day = days[k];
+                    let section = sections[l][j]
+                    let schoolHourTolerance = 8;
+                    let schoolHours=0;
+                    let unassignedSubjects = prepdSubjects.filter(subject=>subject.assigned===false);
     
-                    fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session=="async")).forEach(subject => { // loop through each shuffled async subjects
-                        if(schoolHours<schoolHourTolerance){
-                            let chosenRoom;
-                            let timeSlot;
-                            let startTime;
-                            let endTime;
-                            switch(subject.classType){ // this needs to have its own function
-                                case "lec":
-                                    roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
-                                    chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                    break;
-                                case "lab":
-                                    roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
-                                    chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                    break;
-                                case "gym":
-                                    roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
-                                    chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                    break;
-                                case "out":
-                                    chosenRoom = "TBA";
-                                    break;
-                                default:
-                                    chosenRoom = "TBA"
-                                    break;
+                    if(schoolHours<schoolHourTolerance){
+                        //TO-DO
+                        //Fix subjects with professors that are only available every saturday kept being contested and end up not being assigned
+                        fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.availability.includes(day)).filter(subject=>subject.professor.employmentType=="part-time")).forEach(subject => { // loop through each shuffled non-async subjects
+                            if(schoolHours<schoolHourTolerance){
+                                let chosenRoom;
+                                let timeSlot;
+                                let startTime;
+                                let endTime;
+                                switch(subject.classType){ // this needs to have its own function
+                                    case "lec":
+                                        roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
+                                        chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                        break;
+                                    case "lab":
+                                        roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
+                                        chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                        break;
+                                    case "gym":
+                                        roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
+                                        chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                        break;
+                                    case "out":
+                                        chosenRoom = "TBA";
+                                        break;
+                                    default:
+                                        chosenRoom = "TBA"
+                                        break;
+                                }
+                                timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
+                                startTime = time.find(slot=>slot.slot==timeSlot);
+                                endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
+                                sectionLevelSched.push({section:section,day:day,professor:subject.professor,session:subject.session,subjName:subject.subjName,room:chosenRoom, startTime:startTime.value,endTime:endTime.value});
+                                subject.assigned = true;
+                                schoolHours = schoolHours+subject.duration;
                             }
-                            timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
-                            startTime = time.find(slot=>slot.slot==timeSlot);
-                            endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
-                            sectionLevelSched.push({section:section,day:day,professor:subject.professor,session:subject.session,subjName:subject.subjName,room:chosenRoom, startTime:startTime.value,endTime:endTime.value});
-                            subject.assigned = true;
-                            schoolHours = schoolHours+subject.duration;
-                        }
-                    });
+                        });
+    
+                        fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.availability.includes(day)).filter(subject=>subject.professor.employmentType=="full-time")).forEach(subject => { // loop through each shuffled non-async subjects
+                            if(schoolHours<schoolHourTolerance){
+                                let chosenRoom;
+                                let timeSlot;
+                                let startTime;
+                                let endTime;
+                                switch(subject.classType){ // this needs to have its own function
+                                    case "lec":
+                                        roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
+                                        chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                        break;
+                                    case "lab":
+                                        roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
+                                        chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                        break;
+                                    case "gym":
+                                        roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
+                                        chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                        break;
+                                    case "out":
+                                        chosenRoom = "TBA";
+                                        break;
+                                    default:
+                                        chosenRoom = "TBA"
+                                        break;
+                                }
+                                timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
+                                startTime = time.find(slot=>slot.slot==timeSlot);
+                                endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
+                                sectionLevelSched.push({section:section,day:day,professor:subject.professor,session:subject.session,subjName:subject.subjName,room:chosenRoom, startTime:startTime.value,endTime:endTime.value});
+                                subject.assigned = true;
+                                schoolHours = schoolHours+subject.duration;
+                            }
+                        });
+        
+                        fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session=="async")).forEach(subject => { // loop through each shuffled async subjects
+                            if(schoolHours<schoolHourTolerance){
+                                let chosenRoom;
+                                let timeSlot;
+                                let startTime;
+                                let endTime;
+                                chosenRoom = "-"
+                                timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
+                                startTime = time.find(slot=>slot.slot==timeSlot);
+                                endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
+                                sectionLevelSched.push({section:section,day:day,professor:subject.professor,session:subject.session,subjName:subject.subjName,room:chosenRoom, startTime:startTime.value,endTime:endTime.value});
+                                subject.assigned = true;
+                                schoolHours = schoolHours+subject.duration;
+                            }
+                        });
+                    }
                 }
+                overAllSched.push(sectionLevelSched);
             }
-            overAllSched.push(sectionLevelSched);
         }
+
         initialPopulation.push(overAllSched);
     }
 

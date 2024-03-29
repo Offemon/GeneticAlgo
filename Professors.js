@@ -3,7 +3,7 @@ const professors = [
     {name: "Prof B", department: "CCS", employmentType: "full-time", availability:["monday","tuesday","wednesday","thursday","friday","saturday"], expertise: ["Programming", "Software Engineering", "Computer Science"]},
     {name: "Prof C", department: "CCS", employmentType: "full-time", availability:["monday","tuesday","wednesday","thursday","friday","saturday"], expertise: ["Database","Programming", "Computer Science"]},
     {name: "Prof D", department: "CCS", employmentType: "part-time", availability:["saturday"], expertise: ["Networking","Photography", "Cybersecurity"]},
-    {name: "Prof E", department: "CCS", employmentType: "full-time", availability:["monday","tuesday","wednesday","thursday","friday","saturday"], expertise: ["Web Development","Programming"]},
+    {name: "Prof E", department: "CCS", employmentType: "full-time", availability:["monday","tuesday","wednesday","thursday","friday","saturday"], expertise: ["Web Development","Programming","Hardware"]},
     {name: "Prof F", department: "CCS", employmentType: "full-time", availability:["monday","tuesday","wednesday","thursday","friday","saturday"], expertise: [ "Software Engineering","Programming", "Multimedia"]},
     {name: "Prof G", department: "CCS", employmentType: "part-time", availability:["saturday"], expertise: ["Multimedia", "Animation","Game Development"]},
     {name: "Prof H", department: "GENED", employmentType: "full-time", availability:["monday","tuesday","wednesday","thursday","friday","saturday"], expertise: ["Physical Education"]},

@@ -1,44 +1,42 @@
 //Genetic Algorithm
-const populationSize = 10
+const populationSize = 1000
 const sections = [["11M1","11A1"],["21M1","21A1"],["31A1"],["41E1"]]
 let days = ["monday","tuesday","wednesday","thursday","friday","saturday"]
 
 
 const initializePopulation = (sections) => {
-    let initialPopulation = [];
-    let overAllSched;
-    // const subjects = curriculum[0].contents.find(content=>content.level=="1st_year").firstSem;
-    const roomsToBeUsed = new Rooms(rooms);
-    const professorsToBeAssigned = new Professors(professors);
-    const levels = ["1st_year","2nd_year","3rd_year","4th_year"];
-    // console.log(addProfessorDailyLoad((new Professors(professors)).professors));
-    for(let i = 0; i < populationSize; i++){ // generate an initial population of 50
+    let initialPopulation = [];                                     //this is an array of all generated initial schedules for GA
+    let overAllSched;                                               //An array that holds a single generated schedule from first year to fourth year
+    const roomsToBeUsed = new Rooms(rooms);                         //a variable for the room object
+    const professorsToBeAssigned = new Professors(professors);      //avariable for the professors object
+    const levels = ["1st_year","2nd_year","3rd_year","4th_year"];   //an array for all available levels
+for(let i = 0; i < populationSize; i++){                            //loops for nth number of times depending on the value of the populationSize constant
         overAllSched = [];
         //TO-DO
-        //create a foreach loop for every course
-            //create a foreach loop for every level
-        for(let l = 0; l<levels.length;l++){
-            const subjects = curriculum[0].contents.find(content=>content.level==levels[l]).firstSem;
-            for (let j = 0; j < sections[l].length ; j++){ //generate a monday to saturday sched for each section
-                let sectionLevelSched = [];
+        //create a foreach loop for every course - I still dont have a BSIT Curriculum
+            //create a foreach loop for every level - RESOLVED
+
+        for(let l = 0; l<levels.length;l++){                                                            //loop that goes through each level in the levels array
+            const subjects = curriculum[0].contents.find(content=>content.level==levels[l]).firstSem;   //this line needs to be refactored
+            for (let j = 0; j < sections[l].length ; j++){                                              //loop that goes through each section
+                let sectionLevelSched = [];         //an array that holds multiple classes for a section
                 let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
                 days = fisherYatesShuffler(days);
                 for(let k = 0; k<days.length;k++){  //loop through the days of the week
-                    let day = days[k];
-                    let section = sections[l][j]
-                    let schoolHourTolerance = 8;
-                    let schoolHours=0;
-                    let unassignedSubjects = prepdSubjects.filter(subject=>subject.assigned===false);
-    
+                    let day = days[k];              //variable that holds the current day of the week
+                    let section = sections[l][j]    //variable that holds the current section
+                    let schoolHourTolerance = 8;    //variable that holds the maximum number of hours that a section can have per day
+                    let schoolHours=0;              //variable that holds the initial value of hours
+                    let unassignedSubjects = prepdSubjects.filter(subject=>subject.assigned===false);   //an array of unassigned subjects
                     if(schoolHours<schoolHourTolerance){
+                        let chosenRoom;             //variable that holds the chosen room for a section's subject
+                        let timeSlot;               //variable that holds a timeslot for a section's subject
+                        let startTime;              //variable that holds a start time value for a section's subject
+                        let endTime;                //variable that holds a end time value for a section's subject
                         //TO-DO
-                        //Fix subjects with professors that are only available every saturday kept being contested and end up not being assigned
+                        //Fix subjects with professors that are only available every saturday kept being contested and end up not being assigned - RESOLVED!
                         fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.availability.includes(day)).filter(subject=>subject.professor.employmentType=="part-time")).forEach(subject => { // loop through each shuffled non-async subjects
                             if(schoolHours<schoolHourTolerance){
-                                let chosenRoom;
-                                let timeSlot;
-                                let startTime;
-                                let endTime;
                                 switch(subject.classType){ // this needs to have its own function
                                     case "lec":
                                         roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
@@ -67,13 +65,8 @@ const initializePopulation = (sections) => {
                                 schoolHours = schoolHours+subject.duration;
                             }
                         });
-    
                         fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.availability.includes(day)).filter(subject=>subject.professor.employmentType=="full-time")).forEach(subject => { // loop through each shuffled non-async subjects
                             if(schoolHours<schoolHourTolerance){
-                                let chosenRoom;
-                                let timeSlot;
-                                let startTime;
-                                let endTime;
                                 switch(subject.classType){ // this needs to have its own function
                                     case "lec":
                                         roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
@@ -102,13 +95,8 @@ const initializePopulation = (sections) => {
                                 schoolHours = schoolHours+subject.duration;
                             }
                         });
-        
                         fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session=="async")).forEach(subject => { // loop through each shuffled async subjects
                             if(schoolHours<schoolHourTolerance){
-                                let chosenRoom;
-                                let timeSlot;
-                                let startTime;
-                                let endTime;
                                 chosenRoom = "-"
                                 timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
                                 startTime = time.find(slot=>slot.slot==timeSlot);
@@ -123,28 +111,26 @@ const initializePopulation = (sections) => {
                 overAllSched.push(sectionLevelSched);
             }
         }
-
         initialPopulation.push(overAllSched);
     }
-
     return initialPopulation;
 }
 
-const fitnessFunction = () => {
+const fitnessFunction = () => {     //this funtion evaulates the fitness of a single generated schedule
 
 }
 
-const crossOverFunction = () => {
+const crossOverFunction = () => {   //this function splices the genomes of the best schedule - 2 at a time
 
 }
 
-const mutationFunction = () => {
+const mutationFunction = () => {    //this function enables a schedule to reroll some of it's genomes
 
 }
 
 
 //non-GA functions section
-const fisherYatesShuffler = (array) => {
+const fisherYatesShuffler = (array) => {                        //a function that uses Fisher-Yates algorithm to shuffle an array
     for (let i = array.length-1; i> 0; i--){
         const randomIndex = Math.floor(Math.random()*(i+1));
         [array[i],array[randomIndex]]=[array[randomIndex],array[i]]
@@ -152,7 +138,7 @@ const fisherYatesShuffler = (array) => {
     return array;
 }
 
-const subjectSessionPrep = (subjectArray) => {
+const subjectSessionPrep = (subjectArray) => {                  //a function that attaches an assignment variable and session property based on its classType
     let newsubjectArray = [];
     subjectArray.forEach(subject=>{
 
@@ -175,7 +161,7 @@ const subjectSessionPrep = (subjectArray) => {
     return newsubjectArray;
 }
 
-const addProfessorDailyLoad = (professorsArray) => {
+const addProfessorDailyLoad = (professorsArray) => {            //a function that attaches a variable to hold the number of time that a professor can spend per day and a variable to hold a priority value
     let newProfessorArray = [];
     professorsArray.forEach(professor=>{
         newProfessorArray.push({...professor,dailyHours:0,priority:1});
@@ -183,7 +169,7 @@ const addProfessorDailyLoad = (professorsArray) => {
     return newProfessorArray
 }
 
-const assignProfToSubject = (professorsObj,subjArray) => {
+const assignProfToSubject = (professorsObj,subjArray) => {      //a function that assigns a professor to a subject based on the expertise requirement of the subject
     let newSubjArr = []
     subjArray.forEach(subject=>{
         let chosenProf

@@ -9,7 +9,7 @@
 // const roomsToBeUsed = new Rooms(rooms);
 // const professorsToBeAssigned = new Professors(professors);
 
-console.log(initializePopulation(sections));
+// console.log(...initializePopulation(sections));
 // console.log(subjectSessionPrep(subjects));
 // console.log(subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects)))
 // for(let i = 0; i<20;i++){
@@ -26,3 +26,4 @@ console.log(initializePopulation(sections));
 
 // checkNSTP(sections);
 // console.log(nstpArray);
+console.log(initializePopulation(sections));

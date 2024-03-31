@@ -1,134 +1,130 @@
-//Genetic Algorithm
-const populationSize = 100
-const sections = [["11M1","11A1"],["21M1","21A1"],["31A1"],["41E1"]]
-let days = ["monday","tuesday","wednesday","thursday","friday","saturday"]
-
-
-const initializePopulation = (sections) => {
+const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray) => {
     let initialPopulation = [];                                     //this is an array of all generated initial schedules for GA
     let overAllSched;                                               //An array that holds a single generated schedule from first year to fourth year
+    let chosenCurriculum = curriculum;
+    const sections = sectionsArray
+    let days = ["monday","tuesday","wednesday","thursday","friday","saturday"]
+    const levels = ["1st_year","2nd_year","3rd_year","4th_year"];
     const roomsToBeUsed = new Rooms(rooms);                         //a variable for the room object
     const professorsToBeAssigned = new Professors(professors);      //avariable for the professors object
-    const levels = ["1st_year","2nd_year","3rd_year","4th_year"];   //an array for all available levels
-for(let i = 0; i < populationSize; i++){                            //loops for nth number of times depending on the value of the populationSize constant
-        overAllSched = [];
-        //TO-DO
-        //create a foreach loop for every course - I still dont have a BSIT Curriculum
-            //create a foreach loop for every level - RESOLVED
+    for(let i = 0; i < popSize; i++){                            //loops for nth number of times depending on the value of the populationSize constant
+            overAllSched = [];
+            //TO-DO
+            //create a foreach loop for every course - I still dont have a BSIT Curriculum
+                //create a foreach loop for every level - RESOLVED
 
-        for(let l = 0; l<levels.length;l++){                                                            //loop that goes through each level in the levels array
-            const subjects = curriculum[0].contents.find(content=>content.level==levels[l]).firstSem;   //this line needs to be refactored
-            for (let j = 0; j < sections[l].length ; j++){                                              //loop that goes through each section
-                let sectionLevelSched = [];         //an array that holds multiple classes for a section
-                let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
-                days = fisherYatesShuffler(days);
-                for(let k = 0; k<days.length;k++){  //loop through the days of the week
-                    let day = days[k];              //variable that holds the current day of the week
-                    let section = sections[l][j]    //variable that holds the current section
-                    let schoolHourTolerance = 8;    //variable that holds the maximum number of hours that a section can have per day
-                    let schoolHours=0;              //variable that holds the initial value of hours
-                    let unassignedSubjects = prepdSubjects.filter(subject=>subject.assigned===false);   //an array of unassigned subjects
-                    if(schoolHours<schoolHourTolerance){
-                        let chosenRoom;             //variable that holds the chosen room for a section's subject
-                        let timeSlot;               //variable that holds a timeslot for a section's subject
-                        let startTime;              //variable that holds a start time value for a section's subject
-                        let endTime;                //variable that holds a end time value for a section's subject
-                        //TO-DO
-                        //Fix subjects with professors that are only available every saturday kept being contested and end up not being assigned - RESOLVED!
-                        fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.employmentType=="part-time").filter(subject=>subject.professor.availability.includes(day))).forEach(subject => { // loop through each shuffled non-async subjects
-                            if(schoolHours<schoolHourTolerance){
-                                if(subject.session=="sync"){
-                                    chosenRoom = "-"
-                                }
-                                else{
-                                    switch(subject.classType){ // this needs to have its own function
-                                        case "lec":
-                                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
-                                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                            break;
-                                        case "lab":
-                                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
-                                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                            break;
-                                        case "gym":
-                                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
-                                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                            break;
-                                        case "out":
-                                            chosenRoom = "TBA";
-                                            break;
-                                        default:
-                                            chosenRoom = "TBA"
-                                            break;
+            for(let l = 0; l<levels.length;l++){                                                            //loop that goes through each level in the levels array
+                const subjects = chosenCurriculum.contents.find(content=>content.level==levels[l]).firstSem;   //this line needs to be refactored
+                for (let j = 0; j < sections[l].length ; j++){                                              //loop that goes through each section
+                    let sectionLevelSched = [];         //an array that holds multiple classes for a section
+                    let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
+                    days = fisherYatesShuffler(days);
+                    for(let k = 0; k<days.length;k++){  //loop through the days of the week
+                        let day = days[k];              //variable that holds the current day of the week
+                        let section = sections[l][j]    //variable that holds the current section
+                        let schoolHourTolerance = 8;    //variable that holds the maximum number of hours that a section can have per day
+                        let schoolHours=0;              //variable that holds the initial value of hours
+                        let unassignedSubjects = prepdSubjects.filter(subject=>subject.assigned===false);   //an array of unassigned subjects
+                        if(schoolHours<schoolHourTolerance){
+                            let chosenRoom;             //variable that holds the chosen room for a section's subject
+                            let timeSlot;               //variable that holds a timeslot for a section's subject
+                            let startTime;              //variable that holds a start time value for a section's subject
+                            let endTime;                //variable that holds a end time value for a section's subject
+                            //TO-DO
+                            //Fix subjects with professors that are only available every saturday kept being contested and end up not being assigned - RESOLVED!
+                            fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.employmentType=="part-time").filter(subject=>subject.professor.availability.includes(day))).forEach(subject => { // loop through each shuffled non-async subjects
+                                if(schoolHours<schoolHourTolerance){
+                                    if(subject.session=="sync"){
+                                        chosenRoom = "-"
                                     }
-                                }
+                                    else{
+                                        switch(subject.classType){ // this needs to have its own function
+                                            case "lec":
+                                                roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
+                                                chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                                break;
+                                            case "lab":
+                                                roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
+                                                chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                                break;
+                                            case "gym":
+                                                roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
+                                                chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                                break;
+                                            case "out":
+                                                chosenRoom = "TBA";
+                                                break;
+                                            default:
+                                                chosenRoom = "TBA"
+                                                break;
+                                        }
+                                    }
 
-                                timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
-                                startTime = time.find(slot=>slot.slot==timeSlot);
-                                endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
-                                sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
-                                subject.assigned = true;
-                                schoolHours = schoolHours+subject.duration;
-                            }
-                        });
-                        fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.availability.includes(day)).filter(subject=>subject.professor.employmentType=="full-time")).forEach(subject => { // loop through each shuffled non-async subjects
-                            if(schoolHours<schoolHourTolerance){
-                                if(subject.session=="sync"){
-                                    chosenRoom = "-"
+                                    timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
+                                    startTime = time.find(slot=>slot.slot==timeSlot);
+                                    endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
+                                    sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
+                                    subject.assigned = true;
+                                    schoolHours = schoolHours+subject.duration;
                                 }
-                                else{
-                                    switch(subject.classType){ // this needs to have its own function
-                                        case "lec":
-                                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
-                                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                            break;
-                                        case "lab":
-                                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
-                                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                            break;
-                                        case "gym":
-                                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
-                                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
-                                            break;
-                                        case "out":
-                                            chosenRoom = "TBA";
-                                            break;
-                                        default:
-                                            chosenRoom = "TBA"
-                                            break;
+                            });
+                            fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session!="async").filter(subject=>subject.professor.availability.includes(day)).filter(subject=>subject.professor.employmentType=="full-time")).forEach(subject => { // loop through each shuffled non-async subjects
+                                if(schoolHours<schoolHourTolerance){
+                                    if(subject.session=="sync"){
+                                        chosenRoom = "-"
                                     }
+                                    else{
+                                        switch(subject.classType){ // this needs to have its own function
+                                            case "lec":
+                                                roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
+                                                chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                                break;
+                                            case "lab":
+                                                roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
+                                                chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                                break;
+                                            case "gym":
+                                                roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
+                                                chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                                                break;
+                                            case "out":
+                                                chosenRoom = "TBA";
+                                                break;
+                                            default:
+                                                chosenRoom = "TBA"
+                                                break;
+                                        }
+                                    }
+                                    timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
+                                    startTime = time.find(slot=>slot.slot==timeSlot);
+                                    endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
+                                    sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
+                                    subject.assigned = true;
+                                    schoolHours = schoolHours+subject.duration;
                                 }
-                                timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
-                                startTime = time.find(slot=>slot.slot==timeSlot);
-                                endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
-                                sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
-                                subject.assigned = true;
-                                schoolHours = schoolHours+subject.duration;
-                            }
-                        });
-                        fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session=="async")).forEach(subject => { // loop through each shuffled async subjects
-                            if(schoolHours<schoolHourTolerance){
-                                chosenRoom = "-"
-                                timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
-                                startTime = time.find(slot=>slot.slot==timeSlot);
-                                endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
-                                sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
-                                subject.assigned = true;
-                                schoolHours = schoolHours+subject.duration;
-                            }
-                        });
+                            });
+                            fisherYatesShuffler(unassignedSubjects.filter(subject=>subject.session=="async")).forEach(subject => { // loop through each shuffled async subjects
+                                if(schoolHours<schoolHourTolerance){
+                                    chosenRoom = "-"
+                                    timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
+                                    startTime = time.find(slot=>slot.slot==timeSlot);
+                                    endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
+                                    sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
+                                    subject.assigned = true;
+                                    schoolHours = schoolHours+subject.duration;
+                                }
+                            });
+                        }
                     }
+                    overAllSched.push(sectionLevelSched);
                 }
-                overAllSched.push(sectionLevelSched);
             }
+            initialPopulation.push(overAllSched); //evaluate fitness of the schedules to be returned
         }
-        // console.log(fitnessFunction(overAllSched));
-        initialPopulation.push(fitnessFunction(overAllSched));
-    }
     return initialPopulation;
 }
 
-const fitnessFunction = (scheduleArray) => {     //this funtion evaulates the fitness of a single generated schedule
+const fitnessFunction = (scheduleArray) => {        //this funtion evaulates the fitness of a single generated schedule
     //TO-DO
     //create evaluation criterias that will determine the fitness of a generated schedule (lower accumulated points is better)
     //criterias:
@@ -136,11 +132,11 @@ const fitnessFunction = (scheduleArray) => {     //this funtion evaulates the fi
         //No two or more classes of share the same classroom at the same time (+1 points)
         //No two or more classes of share the same professor at the same time (+1 points)
         //No two or more classes schedule of the same section share or has overlapping room and/or time slot (+2 points)
-
     //this function should assign whether a single class is considered recessive or dominant
         //recessive traits are less likely to be used for crossovers but is more likely to mutate ro reroll some favorable properties
         //dominant trains are more likely to be used for crossovers but is less likely to mutate ro reroll some favorable properties
-    let evaluatedSchedule;      //an array that holds a variable for the fitness evaluation and the schedule that is being evaluated
+    
+        let evaluatedSchedule;      //an array that holds a variable for the fitness evaluation and the schedule that is being evaluated
     let conflictingTimeSlot=0;    //a variable that is incremented if there are conflicting time slots
     let conflictingRooms=0;       //a variable that is incremented if there are conflicting rooms
     let conflictingProfessor=0;   //a variable that is incremented if there are professors that are needed be 2 or more different classes at the same time
@@ -200,19 +196,52 @@ const fitnessFunction = (scheduleArray) => {     //this funtion evaulates the fi
     }
     const recessiveCount = spreadedClasses.filter(selectedClass=>selectedClass.trait=="recessive").length;
     totalOopsiePoints = conflictingProfessor + conflictingRooms + conflictingTimeSlot + weekDayNSTP;
-    evaluatedSchedule = (1/(1+(totalOopsiePoints/maximumOopsiePoints)))
+    // evaluatedSchedule = (1/(1+(totalOopsiePoints/maximumOopsiePoints)))
     // evaluatedSchedule = (1/(1+(totalOopsiePoints)))
-    console.log(`Classes Count: ${spreadedClasses.length}, total oopsies: ${totalOopsiePoints}, maximum oopsies: ${maximumOopsiePoints}, NSTP Classes: ${nstpClassCount}, non-NSTP Classes ${nonNSTPClassCount}`);
-    console.log(`Fitness: ${evaluatedSchedule*100}%, No. of recessive traits: ${recessiveCount}`);
+    evaluatedSchedule = (1-(totalOopsiePoints/maximumOopsiePoints));
+    // console.log(`Classes Count: ${spreadedClasses.length}, total oopsies: ${totalOopsiePoints}, maximum oopsies: ${maximumOopsiePoints}, NSTP Classes: ${nstpClassCount}, non-NSTP Classes ${nonNSTPClassCount}`);
+    // console.log(`Fitness: ${evaluatedSchedule*100}%, No. of recessive traits: ${recessiveCount}`);
     return {fitness:evaluatedSchedule, schedule:spreadedClasses};
 }
 
-const crossOverFunction = () => {   //this function splices the genomes of the best schedule - 2 at a time
-
+const evaluatePopulation = (schedPopulation) => {   //this function evaluates an entire generated population of schedules
+    let evaluatedPopulation = [];
+    schedPopulation.forEach(sched=>{
+        evaluatedPopulation.push(fitnessFunction(sched));
+    })
+    return evaluatedPopulation;
+}
+const crossOverFunction = (schedule) => {           //this function splices the genomes of the best schedule - 2 at a time
+    //TO-DO
+    //get the top half of the sorted array - RESOLVED
+    //create an operation that that creates an offspring of the top half from the previous operation
+    let sortedSchedArray = evaluatePopulation(schedule).sort((a,b)=>b.fitness-a.fitness);
+    let bestHalf = sortedSchedArray.slice(0,sortedSchedArray.length/2);
+    let crossOveredSched = [];
+    bestHalf.forEach(evaluatedSched=>{      // the first have of the new population will the be the best half of the previous poplation
+        crossOveredSched.push(evaluatedSched.schedule);
+    })
+    console.log(crossOveredSched)
+    return reconstructGroupingBySections(crossOveredSched);
 }
 
 const mutationFunction = () => {    //this function enables a schedule to reroll some of it's genomes
 
+}
+
+const generationLoop = (mutationProb,generationCount, scheduleArray) => {
+    let newGeneration = []
+    for(let nthGeneration = 1; nthGeneration <= generationCount; nthGeneration++){
+        // let crossedOverPop = crossOverFunction(scheduleArray);
+    }
+    crossOverFunction(scheduleArray);
+    return newGeneration;
+}
+
+const geneticAlgorithm = (populationSize,maxGenerationCount,mutationProbability,sectionsArray,curriculumObj,roomsArray,profsArray) => {
+    let initPopArray = initializePopulation(populationSize,curriculumObj,profsArray,roomsArray,sectionsArray)
+    console.log(evaluatePopulation(initPopArray))
+    generationLoop(mutationProbability,maxGenerationCount,initPopArray);
 }
 
 
@@ -273,4 +302,17 @@ const assignProfToSubject = (professorsObj,subjArray) => {      //a function tha
         }
     })
     return newSubjArr
+}
+
+const reconstructGroupingBySections = (schedArray) => {
+    reconstructedGroupings = [];                                                                //an array that will hold the groupings
+    extractedSections = Array.from(new Set(schedArray[0].map(sched=>sched.section)));           // to reconstruct the groupings by sections we must need to extract unique sections
+    schedArray.forEach(sched=>{                                                                 //loop through each schedule population
+        let sectiongrouping = []                                                                //an array that will hold the classes of a single section
+        extractedSections.forEach(section=>{                                                    //loop through each existing section
+            sectiongrouping.push(sched.filter(selectedClass=>selectedClass.section==section));  //get all classes that matches the current section of the loop
+        })
+        reconstructedGroupings.push(sectiongrouping);                                           //add it to the array for the section
+    });
+    return reconstructedGroupings;
 }

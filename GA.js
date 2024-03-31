@@ -124,35 +124,33 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
     return initialPopulation;
 }
 
-const fitnessFunction = (scheduleArray) => {        //this funtion evaulates the fitness of a single generated schedule
+const fitnessFunction = (scheduleArray) => {        //this funtion evaulates the fitness of a single generated schedule - Needs Constant Refining
     //TO-DO
     //create evaluation criterias that will determine the fitness of a generated schedule (lower accumulated points is better)
     //criterias:
-        //NSTP classes should be on Saturdays (+3 points)
-        //No two or more classes of share the same classroom at the same time (+1 points)
-        //No two or more classes of share the same professor at the same time (+1 points)
-        //No two or more classes schedule of the same section share or has overlapping room and/or time slot (+2 points)
+        //NSTP classes should be on Saturdays (+50 penalty points)
+        //No two or more classes of share the same classroom at the same time (+10 penalty points)
+        //No two or more classes of share the same professor at the same time (+30 penalty points)
+        //No two or more classes share or has overlapping time slot (+20 penalty points)
     //this function should assign whether a single class is considered recessive or dominant
         //recessive traits are less likely to be used for crossovers but is more likely to mutate ro reroll some favorable properties
         //dominant trains are more likely to be used for crossovers but is less likely to mutate ro reroll some favorable properties
     
-        let evaluatedSchedule;      //an array that holds a variable for the fitness evaluation and the schedule that is being evaluated
-    let conflictingTimeSlot=0;    //a variable that is incremented if there are conflicting time slots
-    let conflictingRooms=0;       //a variable that is incremented if there are conflicting rooms
-    let conflictingProfessor=0;   //a variable that is incremented if there are professors that are needed be 2 or more different classes at the same time
-    let weekDayNSTP=0;            //a variable that is incremented if there are NSTP Classes on weekdays
-    let traitVar;               //a variable that holds a value whether a class is dominant or recessive
-    let maximumOopsiePoints=0;         //a variable that contains the maximum number of negative points that a schedule can have
-    let totalOopsiePoints=0;           //a variable that contains the accumulated number of negative points  of a schedule
-    let oopsiePoints=0          //a variable to track a class' oopsie
-    let spreadedClasses=[];        //an array that holds the spreaded classes of each section. i.e. the classes will no longer be grouped per section
+    let evaluatedSchedule;          //an array that holds a variable for the fitness evaluation and the schedule that is being evaluated
+    let conflictingTimeSlot=0;      //a variable that is incremented if there are conflicting time slots
+    let conflictingRooms=0;         //a variable that is incremented if there are conflicting rooms
+    let conflictingProfessor=0;     //a variable that is incremented if there are professors that are needed be 2 or more different classes at the same time
+    let weekDayNSTP=0;              //a variable that is incremented if there are NSTP Classes on weekdays
+    let maximumOopsiePoints=0;      //a variable that contains the maximum number of negative points that a schedule can have
+    let totalOopsiePoints=0;        //a variable that contains the accumulated number of negative points  of a schedule
+    let spreadedClasses=[];         //an array that holds the spreaded classes of each section. i.e. the classes will no longer be grouped per section
     scheduleArray.forEach(section=>{
         spreadedClasses.push(...section);
     });
     //TO-DO
-    //calculate maximum oopsies
-    //count the number of classes that are NSTP
-    //count the number of classes that are not NSTP
+    //calculate maximum oopsies - RESOLVED
+    //count the number of classes that are NSTP - RESOLVED
+    //count the number of classes that are not NSTP - RESOLVED
     const nstpClassCount = spreadedClasses.filter(selectedClass=> selectedClass.subjCode=="NSTP1" || selectedClass.subjCode=="NSTP2").length;
     const nonNSTPClassCount = spreadedClasses.filter(selectedClass=> selectedClass.subjCode!="NSTP1" && selectedClass.subjCode!="NSTP2").length;
     maximumOopsiePoints = (nstpClassCount*100)+(nonNSTPClassCount*60);
@@ -165,21 +163,21 @@ const fitnessFunction = (scheduleArray) => {        //this funtion evaulates the
 
         for(let comparedToIndex = currentClassIndex+1; comparedToIndex<spreadedClasses.length;comparedToIndex++){
             //check time conflict
-            if(spreadedClasses[currentClassIndex].day == spreadedClasses[comparedToIndex].day && (spreadedClasses[currentClassIndex].startTime.slot>=spreadedClasses[comparedToIndex].startTime.slot && spreadedClasses[currentClassIndex].endTime.slot<spreadedClasses[comparedToIndex].endTime.slot)){
+            if((spreadedClasses[currentClassIndex].day == spreadedClasses[comparedToIndex].day) && ((spreadedClasses[currentClassIndex].startTime.slot>=spreadedClasses[comparedToIndex].startTime.slot) && (spreadedClasses[currentClassIndex].endTime.slot<spreadedClasses[comparedToIndex].endTime.slot))){
                 conflictingTimeSlot += 20;
                 spreadedClasses[currentClassIndex].trait = "recessive";
                 spreadedClasses[comparedToIndex].trait = "recessive"
             }
 
             //check professor conflict
-            if(spreadedClasses[currentClassIndex].professor.name == spreadedClasses[comparedToIndex].professor.name && spreadedClasses[currentClassIndex].day == spreadedClasses[comparedToIndex].day && (spreadedClasses[currentClassIndex].startTime.slot>=spreadedClasses[comparedToIndex].startTime.slot && spreadedClasses[currentClassIndex].endTime.slot<spreadedClasses[comparedToIndex].endTime.slot)){
+            if((spreadedClasses[currentClassIndex].professor.name == spreadedClasses[comparedToIndex].professor.name) && (spreadedClasses[currentClassIndex].day == spreadedClasses[comparedToIndex].day) && ((spreadedClasses[currentClassIndex].startTime.slot>=spreadedClasses[comparedToIndex].startTime.slot) && (spreadedClasses[currentClassIndex].endTime.slot<spreadedClasses[comparedToIndex].endTime.slot))){
                 conflictingProfessor += 30;
                 spreadedClasses[currentClassIndex].trait = "recessive";
                 spreadedClasses[comparedToIndex].trait = "recessive"
             }
 
             //check room conflict
-            if(spreadedClasses[currentClassIndex].day == spreadedClasses[comparedToIndex].day && (spreadedClasses[currentClassIndex].session == "f2f" && spreadedClasses[comparedToIndex].session == "f2f") && spreadedClasses[currentClassIndex].room == spreadedClasses[comparedToIndex].room && (spreadedClasses[currentClassIndex].startTime.slot>=spreadedClasses[comparedToIndex].startTime.slot && spreadedClasses[currentClassIndex].endTime.slot<spreadedClasses[comparedToIndex].endTime.slot)){
+            if(spreadedClasses[currentClassIndex].day == spreadedClasses[comparedToIndex].day && (spreadedClasses[currentClassIndex].session == "f2f" && spreadedClasses[comparedToIndex].session == "f2f") && (spreadedClasses[currentClassIndex].room == spreadedClasses[comparedToIndex].room) && ((spreadedClasses[currentClassIndex].startTime.slot>=spreadedClasses[comparedToIndex].startTime.slot) && (spreadedClasses[currentClassIndex].endTime.slot<spreadedClasses[comparedToIndex].endTime.slot))){
                 conflictingRooms += 10;
                 spreadedClasses[currentClassIndex].trait = "recessive";
                 spreadedClasses[comparedToIndex].trait = "recessive"
@@ -189,16 +187,18 @@ const fitnessFunction = (scheduleArray) => {        //this funtion evaulates the
 
     for(let currentClassIndex = 0; currentClassIndex< spreadedClasses.length; currentClassIndex++){ //loop through all subjects to search for an NSTP Subject
         //check if NSTP is on a weekday
-        if(spreadedClasses[currentClassIndex].subjCode == "NSTP1" || spreadedClasses[currentClassIndex].subjCode == "NSTP2" && spreadedClasses[currentClassIndex].day!="saturday"){
+        if((spreadedClasses[currentClassIndex].subjCode == "NSTP1" || spreadedClasses[currentClassIndex].subjCode == "NSTP2") && spreadedClasses[currentClassIndex].day!="saturday"){
             weekDayNSTP += 100;
             spreadedClasses[currentClassIndex].trait = "recessive";
         }
     }
-    const recessiveCount = spreadedClasses.filter(selectedClass=>selectedClass.trait=="recessive").length;
+    // const recessiveCount = spreadedClasses.filter(selectedClass=>selectedClass.trait=="recessive").length;
     totalOopsiePoints = conflictingProfessor + conflictingRooms + conflictingTimeSlot + weekDayNSTP;
     // evaluatedSchedule = (1/(1+(totalOopsiePoints/maximumOopsiePoints)))
     // evaluatedSchedule = (1/(1+(totalOopsiePoints)))
-    evaluatedSchedule = (1-(totalOopsiePoints/maximumOopsiePoints));
+    evaluatedSchedule = (1-(totalOopsiePoints/maximumOopsiePoints)); //simple fitness formula
+
+    //For Debugging purposes only
     // console.log(`Classes Count: ${spreadedClasses.length}, total oopsies: ${totalOopsiePoints}, maximum oopsies: ${maximumOopsiePoints}, NSTP Classes: ${nstpClassCount}, non-NSTP Classes ${nonNSTPClassCount}`);
     // console.log(`Fitness: ${evaluatedSchedule*100}%, No. of recessive traits: ${recessiveCount}`);
     return {fitness:evaluatedSchedule, schedule:spreadedClasses};
@@ -211,7 +211,8 @@ const evaluatePopulation = (schedPopulation) => {   //this function evaluates an
     })
     return evaluatedPopulation;
 }
-const crossOverFunction = (schedule) => {           //this function splices the genomes of the best schedule - 2 at a time
+
+const crossOverFunction = (schedule) => {           //[WORK IN PROGRESS]this function splices the genomes of the best schedule - 2 at a time
     //TO-DO
     //get the top half of the sorted array - RESOLVED
     //create an operation that that creates an offspring of the top half from the previous operation
@@ -221,15 +222,14 @@ const crossOverFunction = (schedule) => {           //this function splices the 
     bestHalf.forEach(evaluatedSched=>{      // the first have of the new population will the be the best half of the previous poplation
         crossOveredSched.push(evaluatedSched.schedule);
     })
-    console.log(crossOveredSched)
     return reconstructGroupingBySections(crossOveredSched);
 }
 
-const mutationFunction = () => {    //this function enables a schedule to reroll some of it's genomes
+const mutationFunction = () => {    //[WORK IN PROGRESS]this function enables a schedule to reroll some of it's genomes
 
 }
 
-const generationLoop = (mutationProb,generationCount, scheduleArray) => {
+const generationLoop = (mutationProb,generationCount, scheduleArray) => {   //[WORK IN PROGRESS]this function will perform the crossover fuctions and mutations to generate a new generation of schedules.
     let newGeneration = []
     for(let nthGeneration = 1; nthGeneration <= generationCount; nthGeneration++){
         // let crossedOverPop = crossOverFunction(scheduleArray);
@@ -238,14 +238,15 @@ const generationLoop = (mutationProb,generationCount, scheduleArray) => {
     return newGeneration;
 }
 
-const geneticAlgorithm = (populationSize,maxGenerationCount,mutationProbability,sectionsArray,curriculumObj,roomsArray,profsArray) => {
-    let initPopArray = initializePopulation(populationSize,curriculumObj,profsArray,roomsArray,sectionsArray)
-    console.log(evaluatePopulation(initPopArray))
+const geneticAlgorithm = (populationSize,maxGenerationCount,mutationProbability,sectionsArray,curriculumObj,roomsArray,profsArray) => {     //[WORK IN PROGRESS]this is hte Main Genetic Algorithm function
+    let initPopArray = initializePopulation(populationSize,curriculumObj,profsArray,roomsArray,sectionsArray);
+    console.log("Sorted Initial Population:");
+    console.log(evaluatePopulation(initPopArray).sort((a,b)=>b.fitness-a.fitness));
     generationLoop(mutationProbability,maxGenerationCount,initPopArray);
 }
 
 
-//non-GA functions section
+//utility/non-GA functions section
 const fisherYatesShuffler = (array) => {                        //a function that uses Fisher-Yates algorithm to shuffle an array
     for (let i = array.length-1; i> 0; i--){
         const randomIndex = Math.floor(Math.random()*(i+1));
@@ -304,7 +305,7 @@ const assignProfToSubject = (professorsObj,subjArray) => {      //a function tha
     return newSubjArr
 }
 
-const reconstructGroupingBySections = (schedArray) => {
+const reconstructGroupingBySections = (schedArray) => {         //a function that groups a spreaded schedules by sections
     reconstructedGroupings = [];                                                                //an array that will hold the groupings
     extractedSections = Array.from(new Set(schedArray[0].map(sched=>sched.section)));           // to reconstruct the groupings by sections we must need to extract unique sections
     schedArray.forEach(sched=>{                                                                 //loop through each schedule population

@@ -7,21 +7,18 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
     const levels = ["1st_year","2nd_year","3rd_year","4th_year"];
     const roomsToBeUsed = new Rooms(rooms);                         //a variable for the room object
     const professorsToBeAssigned = new Professors(professors);      //avariable for the professors object
-    //TODO
-    //create a function that has foreach loop to attach a series for all subjects in a curriculum
 
     for(let i = 0; i < popSize; i++){                               //loops for nth number of times depending on the value of the populationSize constant
-            overAllSched = [];
+            overAllSched = [];                                      //an array that holds all classes from a single course from first year to fourth year
             //TO-DO
             //create a foreach loop for every course - I still dont have a BSIT Curriculum
             //create a foreach loop for every level - RESOLVED
             for(let l = 0; l<levels.length;l++){                                                                //loop that goes through each level in the levels array
-                const subjects = chosenCurriculum.contents.find(content=>content.level==levels[l]).firstSem;   //this line needs to be refactored
-                let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
-                for (let j = 0; j < sections[l].length ; j++){                                                  //loop that goes through each section
+                const subjects = chosenCurriculum.contents.find(content=>content.level==levels[l]).firstSem;    //this line needs to be refactored
+                let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));   //this line needs to be refactored
+                for (let j = 0; j < sections[l].length ; j++){                                                  //loop that goes through each section per level
                     let sectionLevelSched = [];         //an array that holds multiple classes for a section
-                    days = fisherYatesShuffler(days);
-
+                    days = fisherYatesShuffler(days);   //shuffle the order of days as an added element of randomness
                     prepdSubjects.forEach(subject=>{    //resets the assigned state to false for another section
                         subject.assigned=false;
                     });
@@ -136,7 +133,7 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
     return initialPopulation;
 }
 
-const fitnessFunction = (scheduleArray) => {        //this funtion evaulates the fitness of a single generated schedule - Needs Constant Refining
+const fitnessFunction = (scheduleArray) => {        //this function evaluates the fitness of a single generated schedule - NEEDS CONSTANT REFINING
     //TO-DO
     //create evaluation criterias that will determine the fitness of a generated schedule (lower accumulated points is better)
     //criterias:
@@ -224,14 +221,14 @@ const evaluatePopulation = (schedPopulation) => {   //this function evaluates an
     return evaluatedPopulation;
 }
 
-const crossOverFunction = (schedule) => {           //[WORK IN PROGRESS]this function splices the genomes of the best schedule - 2 at a time
+const crossOverFunction = (schedule) => {           //this function splices the genomes of the best schedule - 2 at a time
     //TO-DO
-    //get the top half of the sorted array - RESOLVED
-    //create an operation that that creates an offspring of the top half from the previous operation - Partially RESOLVED
+    //get the top half of the sorted array - RESOLVED!
+    //create an operation that that creates an offspring of the top half from the previous operation - RESOLVED!
     let sortedSchedArray = evaluatePopulation(schedule).sort((a,b)=>b.fitness-a.fitness);
     let bestHalf = sortedSchedArray.slice(0,sortedSchedArray.length/2);
     let crossOveredSched = [];
-    bestHalf.forEach(evaluatedSched=>{      // the first have of the new population will the be the best half of the previous poplation
+    bestHalf.forEach(evaluatedSched=>{      // the first half of the new population will the be the best half of the previous population
         crossOveredSched.push(evaluatedSched.schedule);
     })
     bestHalfArr=bestHalf.map(evaluatedSched=>evaluatedSched.schedule);
@@ -264,21 +261,20 @@ const crossOverFunction = (schedule) => {           //[WORK IN PROGRESS]this fun
         }
         crossOveredSched.push(offSpringSchedule);
     }
-    console.log(evaluatePopulation(reconstructGroupingBySections(crossOveredSched)).sort((a,b)=>b.fitness-a.fitness))
+    console.log(evaluatePopulation(reconstructGroupingBySections(crossOveredSched)).sort((a,b)=>b.fitness-a.fitness));  //for debugging purposes only
     return evaluatePopulation(reconstructGroupingBySections(crossOveredSched)).sort((a,b)=>b.fitness-a.fitness);
 }
 
-const mutationFunction = () => {                    //[WORK IN PROGRESS]this function enables a schedule to reroll some of it's genomes
+const mutationFunction = () => {                    //[WORK IN PROGRESS]this function enables a schedule to reroll some of it's recessive genomes
 
 }
 
-const generationLoop = (mutationProb,generationCount, scheduleArray) => {   //[WORK IN PROGRESS]this function will perform the crossover fuctions and mutations to generate a new generation of schedules.
+const generationLoop = (mutationProb,generationCount, scheduleArray) => {   //[WORK IN PROGRESS - Mutation Function not yet Implemented]this function will perform the crossover functions and mutations to generate a new generation of schedules.
     let newGeneration = []
     for(let nthGeneration = 1; nthGeneration <= generationCount; nthGeneration++){
         console.log(`Generation ${nthGeneration}:`);
         crossOverFunction(scheduleArray);
     }
-    // crossOverFunction(scheduleArray);
     return newGeneration;
 }
 
@@ -286,10 +282,13 @@ const geneticAlgorithm = (populationSize,maxGenerationCount,mutationProbability,
     let initPopArray = initializePopulation(populationSize,curriculumObj,profsArray,roomsArray,sectionsArray);
     console.log("Sorted Initial Population:");
     console.log(initPopArray);
-    // console.log(evaluatePopulation(initPopArray).sort((a,b)=>b.fitness-a.fitness));
-    // console.log(reconstructGroupingBySections(initPopArray));
+    // console.log(evaluatePopulation(initPopArray).sort((a,b)=>b.fitness-a.fitness));  //for debugging purposes only
+    // console.log(reconstructGroupingBySections(initPopArray));                        //for debugging purposes only
     generationLoop(mutationProbability,maxGenerationCount,initPopArray);
+    //TO-DO
+    //The Generation loop should retain the best fit that it could find and only stop when it finds a 99%-100% fit schedule or until it reaches the maximum allowable Generation count
 }
+
 
 
 //utility/non-GA functions section
@@ -364,8 +363,4 @@ const reconstructGroupingBySections = (schedArray) => {         //a function tha
         reconstructedGroupings.push(sectiongrouping);                                           //add it to the array for the section
     });
     return reconstructedGroupings;
-}
-
-const attachSeries = (curriculum) =>{
-    
 }

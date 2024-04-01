@@ -15,15 +15,17 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
             //TO-DO
             //create a foreach loop for every course - I still dont have a BSIT Curriculum
             //create a foreach loop for every level - RESOLVED
-            for(let l = 0; l<levels.length;l++){                                                            //loop that goes through each level in the levels array
+            for(let l = 0; l<levels.length;l++){                                                                //loop that goes through each level in the levels array
                 const subjects = chosenCurriculum.contents.find(content=>content.level==levels[l]).firstSem;   //this line needs to be refactored
                 let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
-                for (let j = 0; j < sections[l].length ; j++){                                              //loop that goes through each section
+                for (let j = 0; j < sections[l].length ; j++){                                                  //loop that goes through each section
                     let sectionLevelSched = [];         //an array that holds multiple classes for a section
                     days = fisherYatesShuffler(days);
-                    prepdSubjects.forEach(subject=>{
+
+                    prepdSubjects.forEach(subject=>{    //resets the assigned state to false for another section
                         subject.assigned=false;
                     });
+
                     for(let k = 0; k<days.length;k++){  //loop through the days of the week
                         let day = days[k];              //variable that holds the current day of the week
                         let section = sections[l][j]    //variable that holds the current section
@@ -121,10 +123,15 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
                             });
                         }
                     }
-                    overAllSched.push(sectionLevelSched);
+                    let sortedSectionLevelSched = sectionLevelSched.sort((a,b)=>{ // sorting the section-level sched is important during the crossover operation
+                        if(a.subjCode.toLowerCase() < b.subjCode.toLowerCase()) return -1;
+                        if(a.subjCode.toLowerCase() > b.subjCode.toLowerCase()) return 1;
+                        return 0;
+                    });
+                    overAllSched.push(sortedSectionLevelSched);
                 }
             }
-            initialPopulation.push(overAllSched); //evaluate fitness of the schedules to be returned
+            initialPopulation.push(overAllSched);
         }
     return initialPopulation;
 }
@@ -220,36 +227,66 @@ const evaluatePopulation = (schedPopulation) => {   //this function evaluates an
 const crossOverFunction = (schedule) => {           //[WORK IN PROGRESS]this function splices the genomes of the best schedule - 2 at a time
     //TO-DO
     //get the top half of the sorted array - RESOLVED
-    //create an operation that that creates an offspring of the top half from the previous operation
+    //create an operation that that creates an offspring of the top half from the previous operation - Partially RESOLVED
     let sortedSchedArray = evaluatePopulation(schedule).sort((a,b)=>b.fitness-a.fitness);
     let bestHalf = sortedSchedArray.slice(0,sortedSchedArray.length/2);
     let crossOveredSched = [];
     bestHalf.forEach(evaluatedSched=>{      // the first have of the new population will the be the best half of the previous poplation
         crossOveredSched.push(evaluatedSched.schedule);
     })
-    for(let currentIndex = 0;currentIndex<bestHalf.length-1;currentIndex+=2){
-        console.log(currentIndex);
+    bestHalfArr=bestHalf.map(evaluatedSched=>evaluatedSched.schedule);
+    for(let schedCurrentIndex = 0;schedCurrentIndex<bestHalfArr.length;schedCurrentIndex+=2){     //this loop will generate a new population but the dominant traits are in favor of Parent A
+        let parentA = bestHalfArr[schedCurrentIndex];
+        let parentB = bestHalfArr[schedCurrentIndex+1];
+        let offSpringSchedule = [];
+        for(let classCurrentIndex=0;classCurrentIndex<parentA.length;classCurrentIndex++){
+            if(parentA[classCurrentIndex].trait=="dominant"){
+                offSpringSchedule.push(parentA[classCurrentIndex]);
+            }
+            else{
+                offSpringSchedule.push(parentB[classCurrentIndex]);
+            }
+        }
+        crossOveredSched.push(offSpringSchedule);
     }
-    return reconstructGroupingBySections(crossOveredSched);
+
+    for(let schedCurrentIndex = 0;schedCurrentIndex<bestHalfArr.length;schedCurrentIndex+=2){     //this loop will generate a new population but the dominant traits are in favor of Parent B
+        let parentA = bestHalfArr[schedCurrentIndex];
+        let parentB = bestHalfArr[schedCurrentIndex+1];
+        let offSpringSchedule = [];
+        for(let classCurrentIndex=0;classCurrentIndex<parentB.length;classCurrentIndex++){
+            if(parentB[classCurrentIndex].trait=="dominant"){
+                offSpringSchedule.push(parentB[classCurrentIndex]);
+            }
+            else{
+                offSpringSchedule.push(parentA[classCurrentIndex]);
+            }
+        }
+        crossOveredSched.push(offSpringSchedule);
+    }
+    console.log(evaluatePopulation(reconstructGroupingBySections(crossOveredSched)).sort((a,b)=>b.fitness-a.fitness))
+    return evaluatePopulation(reconstructGroupingBySections(crossOveredSched)).sort((a,b)=>b.fitness-a.fitness);
 }
 
-const mutationFunction = () => {    //[WORK IN PROGRESS]this function enables a schedule to reroll some of it's genomes
+const mutationFunction = () => {                    //[WORK IN PROGRESS]this function enables a schedule to reroll some of it's genomes
 
 }
 
 const generationLoop = (mutationProb,generationCount, scheduleArray) => {   //[WORK IN PROGRESS]this function will perform the crossover fuctions and mutations to generate a new generation of schedules.
     let newGeneration = []
     for(let nthGeneration = 1; nthGeneration <= generationCount; nthGeneration++){
-        // let crossedOverPop = crossOverFunction(scheduleArray);
+        console.log(`Generation ${nthGeneration}:`);
+        crossOverFunction(scheduleArray);
     }
-    crossOverFunction(scheduleArray);
+    // crossOverFunction(scheduleArray);
     return newGeneration;
 }
 
 const geneticAlgorithm = (populationSize,maxGenerationCount,mutationProbability,sectionsArray,curriculumObj,roomsArray,profsArray) => {     //[WORK IN PROGRESS]this is hte Main Genetic Algorithm function
     let initPopArray = initializePopulation(populationSize,curriculumObj,profsArray,roomsArray,sectionsArray);
     console.log("Sorted Initial Population:");
-    console.log(evaluatePopulation(initPopArray).sort((a,b)=>b.fitness-a.fitness));
+    console.log(initPopArray);
+    // console.log(evaluatePopulation(initPopArray).sort((a,b)=>b.fitness-a.fitness));
     // console.log(reconstructGroupingBySections(initPopArray));
     generationLoop(mutationProbability,maxGenerationCount,initPopArray);
 }

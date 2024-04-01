@@ -7,18 +7,23 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
     const levels = ["1st_year","2nd_year","3rd_year","4th_year"];
     const roomsToBeUsed = new Rooms(rooms);                         //a variable for the room object
     const professorsToBeAssigned = new Professors(professors);      //avariable for the professors object
-    for(let i = 0; i < popSize; i++){                            //loops for nth number of times depending on the value of the populationSize constant
+    //TODO
+    //create a function that has foreach loop to attach a series for all subjects in a curriculum
+
+    for(let i = 0; i < popSize; i++){                               //loops for nth number of times depending on the value of the populationSize constant
             overAllSched = [];
             //TO-DO
             //create a foreach loop for every course - I still dont have a BSIT Curriculum
-                //create a foreach loop for every level - RESOLVED
-
+            //create a foreach loop for every level - RESOLVED
             for(let l = 0; l<levels.length;l++){                                                            //loop that goes through each level in the levels array
                 const subjects = chosenCurriculum.contents.find(content=>content.level==levels[l]).firstSem;   //this line needs to be refactored
+                let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
                 for (let j = 0; j < sections[l].length ; j++){                                              //loop that goes through each section
                     let sectionLevelSched = [];         //an array that holds multiple classes for a section
-                    let prepdSubjects = subjectSessionPrep(assignProfToSubject(professorsToBeAssigned,subjects));
                     days = fisherYatesShuffler(days);
+                    prepdSubjects.forEach(subject=>{
+                        subject.assigned=false;
+                    });
                     for(let k = 0; k<days.length;k++){  //loop through the days of the week
                         let day = days[k];              //variable that holds the current day of the week
                         let section = sections[l][j]    //variable that holds the current section
@@ -63,7 +68,7 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
                                     timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
                                     startTime = time.find(slot=>slot.slot==timeSlot);
                                     endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
-                                    sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
+                                    sectionLevelSched.push({...subject,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
                                     subject.assigned = true;
                                     schoolHours = schoolHours+subject.duration;
                                 }
@@ -98,7 +103,7 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
                                     timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
                                     startTime = time.find(slot=>slot.slot==timeSlot);
                                     endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
-                                    sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
+                                    sectionLevelSched.push({...subject,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
                                     subject.assigned = true;
                                     schoolHours = schoolHours+subject.duration;
                                 }
@@ -109,7 +114,7 @@ const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray
                                     timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
                                     startTime = time.find(slot=>slot.slot==timeSlot);
                                     endTime = time.find(slot=>slot.slot==(timeSlot+subject.duration));
-                                    sectionLevelSched.push({subjCode:subject.subjCode,subjName:subject.subjName,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
+                                    sectionLevelSched.push({...subject,section:section,day:day,professor:subject.professor,session:subject.session,room:chosenRoom, startTime:startTime,endTime:endTime});
                                     subject.assigned = true;
                                     schoolHours = schoolHours+subject.duration;
                                 }
@@ -222,6 +227,9 @@ const crossOverFunction = (schedule) => {           //[WORK IN PROGRESS]this fun
     bestHalf.forEach(evaluatedSched=>{      // the first have of the new population will the be the best half of the previous poplation
         crossOveredSched.push(evaluatedSched.schedule);
     })
+    for(let currentIndex = 0;currentIndex<bestHalf.length-1;currentIndex+=2){
+        console.log(currentIndex);
+    }
     return reconstructGroupingBySections(crossOveredSched);
 }
 
@@ -242,6 +250,7 @@ const geneticAlgorithm = (populationSize,maxGenerationCount,mutationProbability,
     let initPopArray = initializePopulation(populationSize,curriculumObj,profsArray,roomsArray,sectionsArray);
     console.log("Sorted Initial Population:");
     console.log(evaluatePopulation(initPopArray).sort((a,b)=>b.fitness-a.fitness));
+    // console.log(reconstructGroupingBySections(initPopArray));
     generationLoop(mutationProbability,maxGenerationCount,initPopArray);
 }
 
@@ -257,10 +266,11 @@ const fisherYatesShuffler = (array) => {                        //a function tha
 
 const subjectSessionPrep = (subjectArray) => {                  //a function that attaches an assignment variable and session property based on its classType
     let newsubjectArray = [];
+    // let series = 1                                              //a variable that holds an integer to be used for matching during the crossover operation
     subjectArray.forEach(subject=>{
-
         duration = subject.duration
         subject.assigned = false;
+        // subject.series=series
 
         if(subject.classType==="lec"){
             subject.duration = 1.5;
@@ -274,6 +284,7 @@ const subjectSessionPrep = (subjectArray) => {                  //a function tha
         else{
             newsubjectArray.push({...subject,session:"f2f",duration:3});
         }
+        // series+=1;
     })
     return newsubjectArray;
 }
@@ -316,4 +327,8 @@ const reconstructGroupingBySections = (schedArray) => {         //a function tha
         reconstructedGroupings.push(sectiongrouping);                                           //add it to the array for the section
     });
     return reconstructedGroupings;
+}
+
+const attachSeries = (curriculum) =>{
+    
 }

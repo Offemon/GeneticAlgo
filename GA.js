@@ -1,4 +1,4 @@
-const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray) => {
+const initializePopulation = (popSize, curriculum,professors,rooms,sectionsArray) => {  // returns a group classes by section
     let initialPopulation = [];                                     //this is an array of all generated initial schedules for GA
     let overAllSched;                                               //An array that holds a single generated schedule from first year to fourth year
     let chosenCurriculum = curriculum;
@@ -213,7 +213,7 @@ const fitnessFunction = (scheduleArray) => {        //this function evaluates th
     return {fitness:evaluatedSchedule, schedule:spreadedClasses};
 }
 
-const evaluatePopulation = (schedPopulation) => {   //this function evaluates an entire generated population of schedules
+const evaluatePopulation = (schedPopulation) => {   //this function evaluates an entire generated population of schedules and returns a spreaded classes with fitness values attached to each schedule
     let evaluatedPopulation = [];
     schedPopulation.forEach(sched=>{
         evaluatedPopulation.push(fitnessFunction(sched));
@@ -261,32 +261,110 @@ const crossOverFunction = (schedule) => {           //this function splices the 
         }
         crossOveredSched.push(offSpringSchedule);
     }
-    console.log(evaluatePopulation(reconstructGroupingBySections(crossOveredSched)).sort((a,b)=>b.fitness-a.fitness));  //for debugging purposes only
+    // console.log("asdf")
+    // console.log("Crossover Function: ",evaluatePopulation(reconstructGroupingBySections(crossOveredSched)).sort((a,b)=>b.fitness-a.fitness));  //for debugging purposes only
     return evaluatePopulation(reconstructGroupingBySections(crossOveredSched)).sort((a,b)=>b.fitness-a.fitness);
 }
 
-const mutationFunction = () => {                    //[WORK IN PROGRESS]this function enables a schedule to reroll some of it's recessive genomes
+const mutationFunction = (mutationProb,schedGeneration) => {                    //[WORK IN PROGRESS]this function enables a schedule to reroll some of it's recessive genomes
+    // mutatedGeneration = [];
+    // mutatedOverallSched = [];
+    // console.log("pre-mutation",schedGeneration);
+    const roomsToBeUsed = new Rooms(rooms);
+    schedGeneration.forEach(overAllSched=>{
+        let spreadedClasses = []
+        overAllSched.forEach(level=>{
 
+            spreadedClasses.push(...level);
+
+        })
+        let defectiveClasses = spreadedClasses.filter(selectedClass=>selectedClass.trait=="recessive");
+        defectiveClasses.forEach(selectedClass => {
+            //reroll Room
+            if(Math.random() < mutationProb){
+                timeSlot = time[Math.floor(Math.random()*(time.length-11))].slot;
+                startTime = timeSlot
+                endTime = timeSlot+selectedClass.duration;
+                selectedClass.startTime = startTime;
+                selectedClass.endTime = endTime;
+                // console.log("rerolled time");
+            }
+            if(Math.random() < mutationProb){
+                if(selectedClass.session=="f2f"){
+                    switch(selectedClass.classType){ // this needs to have its own function
+                        case "lec":
+                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("lec").rooms;
+                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                            break;
+                        case "lab":
+                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("comp_lab").rooms;
+                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                            break;
+                        case "gym":
+                            roomsArray = roomsToBeUsed.fetchEnabledRooms().fetchRoomsByType("gym").rooms;
+                            chosenRoom = roomsArray[Math.floor(Math.random()*(roomsArray.length-1))];
+                            break;
+                        case "out":
+                            chosenRoom = "TBA";
+                            break;
+                        default:
+                            chosenRoom = "TBA"
+                            break;
+                    }
+                }
+                // console.log("rerolled room");
+            }
+        })
+    })
+    // console.log("post-mutation",schedGeneration);
+    return schedGeneration;
 }
 
 const generationLoop = (mutationProb,generationCount, scheduleArray) => {   //[WORK IN PROGRESS - Mutation Function not yet Implemented]this function will perform the crossover functions and mutations to generate a new generation of schedules.
-    let newGeneration = []
-    for(let nthGeneration = 1; nthGeneration <= generationCount; nthGeneration++){
-        console.log(`Generation ${nthGeneration}:`);
-        crossOverFunction(scheduleArray);
+    let newGeneration = scheduleArray
+    let fittestSched = evaluatePopulation(scheduleArray).sort((a,b)=>b.fitness-a.fitness)[0];
+
+    // for(let nthGeneration = 1; nthGeneration <= generationCount; nthGeneration++){                           // Loop for User Defined number of Generations
+    //     console.log(`Generation: ${nthGeneration}, Best Fitness: ${(fittestSched.fitness*100).toFixed(2)}%`);
+    //     let currentGeneration = crossOverFunction(newGeneration).sort((a,b)=>b.fitness-a.fitness);
+    //     newGeneration = reconstructGroupingBySections(currentGeneration.map(sched=>sched.schedule));
+    //     // console.log("pre-mutation: ",evaluatePopulation(newGeneration));
+    //     //the mutation should occur here then re-evaluate the fitness
+    //     newGeneration = mutationFunction(mutationProb,newGeneration);
+    //     // console.log("post-mutation: ",evaluatePopulation(newGeneration));
+    //     if(fittestSched.fitness < currentGeneration[0].fitness){
+    //         fittestSched = currentGeneration[0];
+    //     }
+    //     console.log("Fittest Sched: ", fittestSched);
+    //     // console.log(reconstructGroupingBySections(currentGeneration.map(sched=>sched.schedule)));
+    // }
+
+    let nthGeneration = 1;
+    while(fittestSched.fitness != 1){                                                                           //loop that only stops when it finds a 100% fitness schedule
+        let currentGeneration = crossOverFunction(newGeneration).sort((a,b)=>b.fitness-a.fitness);
+        newGeneration = reconstructGroupingBySections(currentGeneration.map(sched=>sched.schedule));
+        //the mutation should occur here then re-evaluate the fitness
+        //the mutated population is still not being evalutated but it still works though
+        newGeneration = mutationFunction(mutationProb,newGeneration);
+        if(fittestSched.fitness < currentGeneration[0].fitness){
+            fittestSched = currentGeneration[0];
+        }
+        console.log(`Generation: ${nthGeneration}, Best Fitness: ${(fittestSched.fitness*100).toFixed(2)}%`);
+        console.log("Fittest Sched: ", fittestSched);
+        nthGeneration++;
     }
-    return newGeneration;
+    return fittestSched;
 }
 
 const geneticAlgorithm = (populationSize,maxGenerationCount,mutationProbability,sectionsArray,curriculumObj,roomsArray,profsArray) => {     //[WORK IN PROGRESS]this is hte Main Genetic Algorithm function
     let initPopArray = initializePopulation(populationSize,curriculumObj,profsArray,roomsArray,sectionsArray);
-    console.log("Sorted Initial Population:");
-    console.log(initPopArray);
+    // console.log("Sorted Initial Population:",initPopArray);
     // console.log(evaluatePopulation(initPopArray).sort((a,b)=>b.fitness-a.fitness));  //for debugging purposes only
     // console.log(reconstructGroupingBySections(initPopArray));                        //for debugging purposes only
-    generationLoop(mutationProbability,maxGenerationCount,initPopArray);
+    let fittestSched = generationLoop(mutationProbability,maxGenerationCount,initPopArray);
     //TO-DO
     //The Generation loop should retain the best fit that it could find and only stop when it finds a 99%-100% fit schedule or until it reaches the maximum allowable Generation count
+    return fittestSched.schedule;
 }
 
 
